@@ -85,10 +85,6 @@ func GetNodesCycles(nodes []Node, n int) (cycles [][]Node) {
 		}
 	}
 
-	if 0 == n {
-		return
-	}
-
 	// tarjan start
 	V := wrapNodes(nodes)
 	for _, v := range V {
@@ -96,8 +92,8 @@ func GetNodesCycles(nodes []Node, n int) (cycles [][]Node) {
 			strongConnect(v)
 		}
 
-		if n == len(cycles) {
-			return
+		if n > 0 && n <= len(cycles) {
+			return cycles[:n]
 		}
 	}
 
