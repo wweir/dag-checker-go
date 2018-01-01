@@ -1,25 +1,29 @@
-package cycle
+package dag
 
 import (
 	"testing"
 )
 
 type tv struct {
-	id       string
-	children []*tv
+	id      string
+	targets []*tv
 }
 
-func (v *tv) Children() []Node {
-	nodes := make([]Node, len(v.children))
-	for i := range v.children {
-		nodes[i] = Node(v.children[i])
+func (v *tv) Targets() []Node {
+	nodes := make([]Node, len(v.targets))
+	for i := range v.targets {
+		nodes[i] = Node(v.targets[i])
 	}
 	return nodes
 }
+
+/*
+A+--------->B
+*/
 func TestGetNodesCycles_NoCycle(t *testing.T) {
 	a := &tv{}
 	b := &tv{}
-	a.children = []*tv{b}
+	a.targets = []*tv{b}
 
 	type args struct {
 		nodes []Node
@@ -44,11 +48,18 @@ func TestGetNodesCycles_NoCycle(t *testing.T) {
 	}
 }
 
+/*
+A+-------------+
+^              |
+|              |
+|              v
++-------------+B
+*/
 func TestGetNodesCycles_Cycle1(t *testing.T) {
 	a := &tv{}
 	b := &tv{}
-	a.children = []*tv{b}
-	b.children = []*tv{a}
+	a.targets = []*tv{b}
+	b.targets = []*tv{a}
 
 	type args struct {
 		nodes []Node
@@ -73,13 +84,20 @@ func TestGetNodesCycles_Cycle1(t *testing.T) {
 	}
 }
 
+/*
++------------+A+-------------+
+|             ^              |
+|             |              |
+v             |              v
+B+------------+-------------+C
+*/
 func TestGetNodesCycles_Cycle2(t *testing.T) {
 	a := &tv{}
 	b := &tv{}
 	c := &tv{}
-	a.children = []*tv{b, c}
-	b.children = []*tv{a}
-	c.children = []*tv{a}
+	a.targets = []*tv{b, c}
+	b.targets = []*tv{a}
+	c.targets = []*tv{a}
 
 	type args struct {
 		nodes []Node
@@ -104,15 +122,22 @@ func TestGetNodesCycles_Cycle2(t *testing.T) {
 	}
 }
 
+/*
++------------+A+-------------+-----------+D
+|             ^              |            ^
+|             |              |            |
+v             |              v            |
+B+------------+              C+-----------+
+*/
 func TestGetNodesCycles_Cycle3(t *testing.T) {
 	a := &tv{}
 	b := &tv{}
 	c := &tv{}
 	d := &tv{}
-	a.children = []*tv{b, c}
-	b.children = []*tv{a}
-	c.children = []*tv{d}
-	d.children = []*tv{c}
+	a.targets = []*tv{b, c}
+	b.targets = []*tv{a}
+	c.targets = []*tv{d}
+	d.targets = []*tv{c}
 
 	type args struct {
 		nodes []Node

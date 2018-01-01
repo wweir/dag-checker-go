@@ -1,16 +1,16 @@
-package cycle
+package dag
 
 // Node is a v in G = (V, E)
 type Node interface {
-	Children() []Node
+	Targets() []Node
 }
 
 type node struct {
-	index    int
-	lowlink  int
-	onStack  bool
-	node     Node
-	children []*node
+	index   int
+	lowlink int
+	onStack bool
+	node    Node
+	targets []*node
 }
 
 // wrapNodes wrap outer Node into node
@@ -24,12 +24,12 @@ func wrapNodes(nodes []Node) []*node {
 	}
 
 	for i := range V {
-		children := V[i].node.Children()
-		innerChildren := make([]*node, len(children))
-		for i, child := range children {
-			innerChildren[i] = rec[child]
+		targets := V[i].node.Targets()
+		wrapped := make([]*node, len(targets))
+		for i, target := range targets {
+			wrapped[i] = rec[target]
 		}
-		V[i].children = innerChildren
+		V[i].targets = wrapped
 	}
 
 	return V
@@ -38,7 +38,7 @@ func wrapNodes(nodes []Node) []*node {
 // GetNodesCycles get cycles from graph data of adjacency lists with algorithm tarjan
 func GetNodesCycles(nodes []Node, n int) (cycles [][]Node) {
 	var (
-		index         = 0
+		index         = 0 // 0 means undefined
 		stack         = make([]*node, 0, len(nodes))
 		strongConnect func(*node)
 	)
@@ -50,7 +50,7 @@ func GetNodesCycles(nodes []Node, n int) (cycles [][]Node) {
 		stack = append(stack, v) //push
 		v.onStack = true
 
-		for _, w := range v.children {
+		for _, w := range v.targets {
 			if 0 == w.index {
 				strongConnect(w)
 				if w.lowlink < v.lowlink {
@@ -85,7 +85,11 @@ func GetNodesCycles(nodes []Node, n int) (cycles [][]Node) {
 		}
 	}
 
-	// algorithm tarjan begin
+	if 0 == n {
+		return
+	}
+
+	// tarjan start
 	V := wrapNodes(nodes)
 	for _, v := range V {
 		if 0 == v.index {

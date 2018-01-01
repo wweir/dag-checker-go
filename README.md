@@ -1,2 +1,3 @@
-# cycle-checker-go
-a graph cycle check package use algorithm tarjan
+# dag-checker-go
+
+a graph cycle check package for dag(directed acyclic graph) use algorithm tarjan
